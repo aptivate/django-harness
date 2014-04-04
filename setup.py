@@ -11,5 +11,6 @@ setup(
     description='Functions to test Django and Django CMS applications',
     install_requires=[
         "django >= 1.5",
+        "cssselect >= 0.9.1",
     ],
 )
