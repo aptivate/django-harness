@@ -3,6 +3,8 @@ from __future__ import unicode_literals, absolute_import
 from cssselect import GenericTranslator
 from htmlentitydefs import name2codepoint
 from lxml import etree
+import six
+
 
 class HtmlParsingMixin(object):
     def parse(self, response):
@@ -11,7 +13,7 @@ class HtmlParsingMixin(object):
             return response.parsed
 
         from django.utils.safestring import SafeText
-        if isinstance(response, SafeText) or isinstance(response, unicode):
+        if isinstance(response, SafeText) or isinstance(response, six.string_types):
             content = response
         else:
             from django.template.response import SimpleTemplateResponse
@@ -157,7 +159,8 @@ class HtmlParsingMixin(object):
         if 'content' in dir(response_or_element):
             # it's an HTTP response, so parse it to get root element
             ancestor = self.parse(response_or_element)
-        elif isinstance(response_or_element, SafeText) or isinstance(response_or_element, unicode):
+        elif isinstance(response_or_element, SafeText) or \
+            isinstance(response_or_element, six.string_types):
             ancestor = self.parse(response_or_element)
         else:
             ancestor = response_or_element
