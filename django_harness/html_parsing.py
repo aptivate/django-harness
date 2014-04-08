@@ -21,14 +21,15 @@ class HtmlParsingMixin(object):
                 response.render()
 
             if 'content' not in dir(response):
-                return
-                # without setting the parsed attribute, so it blows up if you
+                raise Exception("Tried to parse response with no content: %s"
+                    % response)
+                # without setting response.parsed, so it blows up if you
                 # try to access it.
 
             mime_type, _, charset = response['Content-Type'].partition(';')
             if mime_type != "text/html":
                 return
-                # without setting the parsed attribute, so it blows up if you
+                # without setting response.parsed, so it blows up if you
                 # try to access it.
 
             if 'content' not in dir(response):
