@@ -4,7 +4,6 @@ import re
 import sys
 from threading import local
 import time
-from unittest import skipUnless
 import warnings
 from functools import wraps
 
