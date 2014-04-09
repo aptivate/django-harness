@@ -132,7 +132,7 @@ class HtmlParsingMixin(object):
             ex = sys.exc_info()
             raise ex[0], "Failed to execute XPath query: %s: %s" % \
                 (xpath, ex[1]), ex[2]
-            
+
         if required:
             self.assertNotEqual(0, len(children),
                 "Failed to find '%s' in section:\n\n%s" %
@@ -177,10 +177,10 @@ class HtmlParsingMixin(object):
         if message:
             message = message + ': '
 
-        self.assertNotEqual(0, len(element), message + 
+        self.assertNotEqual(0, len(element), message +
             "%s does not have any children" % self.tostring(element))
         return element[0]
-            
+
     def extract_error_message(self, response):
         self.parse(response)
 
@@ -226,10 +226,10 @@ class HtmlParsingMixin(object):
         max_num = self.find_within(parent,
             './/input[@id="id_%s-MAX_NUM_FORMS"]' % prefix)
 
-        return {
-            element.get('name'): element.get('value')
+        return dict(
+            (element.get('name'), element.get('value'))
             for element in [total, initial, max_num]
-        }
+        )
 
     def assertInHTML(self, needle, haystack, count = None, msg_prefix=''):
         if msg_prefix:
