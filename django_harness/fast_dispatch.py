@@ -44,10 +44,11 @@ class FastDispatchMixin(object):
     default_cms_page = None
 
     def get_fake_request(self, path, method='get', get_params=None, 
-        post_params=None, request_extras=None):
+        post_params=None, request_extras=None, file_params=None):
 
         get_params  = get_params  if get_params  else {}
         post_params = post_params if post_params else {}
+        file_params = file_params if file_params else {}
 
         factory = RequestFactory()
         handler = getattr(factory, method)
@@ -58,14 +59,25 @@ class FastDispatchMixin(object):
             if hasattr(value, '__iter__'):
                 request.GET.setlist(key, value)
             else:
+                if not isinstance(value, basestring):
+                    raise Exception("GET and POST can only contain strings, "
+                        "but %s = %s (%s)" % (key, value, value.__class__))
                 request.GET.setlist(key, [value])
 
         request.POST = request.POST.copy()
         for key, value in post_params.iteritems():
-            if hasattr(value, '__iter__'):
+            if isinstance(value, File):
+                request.FILES.setlist(key, [value])
+            elif hasattr(value, '__iter__'):
                 request.POST.setlist(key, value)
             else:
+                if not isinstance(value, basestring):
+                    raise Exception("GET and POST can only contain strings, "
+                        "but %s = %s (%s)" % (key, value, value.__class__))
                 request.POST.setlist(key, [value])
+
+        for key, value in file_params.iteritems():
+            request.FILES.setlist(key, [value])
 
         # Make them immutable to catch abuses that otherwise would only
         # appear in real life, not in the tests.
@@ -97,7 +109,7 @@ class FastDispatchMixin(object):
 
     def fast_dispatch(self, view_name, method='get', url_args=None, 
         url_kwargs=None, post_params=None, get_params=None, language=None,
-        request_extras=None):
+        request_extras=None, file_params=None):
 
         url_args    = url_args    if url_args    else []
         url_kwargs  = url_kwargs  if url_kwargs  else {}
@@ -109,7 +121,7 @@ class FastDispatchMixin(object):
 
             view = resolved.func
             view.request = self.get_fake_request(path, method, get_params,
-                post_params, request_extras)
+                post_params, request_extras, file_params)
             self.last_request = view.request
             response = view(view.request, *resolved.args, **resolved.kwargs)
 
