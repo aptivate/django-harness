@@ -253,11 +253,6 @@ class FastDispatchMixin(object):
         self.client.session.save()
         self.client.login(username=self.user.username, password=self.password)
 
-    """
-    def create_user(self, user_type=UserProfile.NORMAL, **kwargs):
-        return G(UserProfile, user_type=user_type, **kwargs).user
-    """
-
     def assertInDict(self, member, container, msg=None):
         """
         Returns the member if the assertion passes.
