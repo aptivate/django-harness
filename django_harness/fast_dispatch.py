@@ -197,7 +197,13 @@ class FastDispatchMixin(object):
         if 'content' in dir(response):
             if hasattr(response, 'render'):
                 response.render()
-            msg_prefix = response.content + "\n\n" + msg_prefix
+
+            if isinstance(response.content, str):
+                content = unicode(response.content, 'utf-8')
+            else:
+                content = response.content
+
+            msg_prefix = content + u"\n\n" + unicode(msg_prefix)
 
         self.assertEqual(response.status_code, status_code,
             msg_prefix + "Response didn't redirect as expected: Response"
