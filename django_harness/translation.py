@@ -358,8 +358,8 @@ class TranslationTestMixin(object):
 # creation of TranslatableModel objects as a trap for the unwary developers.
 
 import django.dispatch
-from aptivate_monkeypatch.monkeypatch import patch
 try:
+    from aptivate_monkeypatch.monkeypatch import patch
     @patch(django.dispatch.Signal, 'send')
     def send(original_function, self, sender, **named):
         responses = []
@@ -382,8 +382,10 @@ try:
 
         self.receivers = receivers_without_haystack + receivers_that_are_haystack
         return original_function(self, sender, **named)
-except Exception as e:
-    raise
+except ImportError as e:
+    import logging
+    logger = logging.getLogger('django_harness.translation')
+    logger.warning('Failed to patch Django signals for haystack: %s', e)
 
 
 from hvad.admin import TranslatableAdmin
