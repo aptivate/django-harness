@@ -1,14 +1,43 @@
 from __future__ import unicode_literals, absolute_import
 
+import collections
 from urlparse import urlsplit
 
 from django.core.urlresolvers import resolve, reverse
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.contrib.auth.models import User
 from django.test.client import RequestFactory
+from django.core.files import File
 
-from cms.test_utils.testcases import CMSTestCase
-from django_dynamic_fixture import G
+class FakeSession(collections.MutableMapping):
+    """
+    http://stackoverflow.com/questions/3387691/python-how-to-perfectly-override-a-dict
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.store = dict()
+        self.update(dict(*args, **kwargs))  # use the free update to set keys
+
+    def __getitem__(self, key):
+        return self.store[self.__keytransform__(key)]
+
+    def __setitem__(self, key, value):
+        self.store[self.__keytransform__(key)] = value
+
+    def __delitem__(self, key):
+        del self.store[self.__keytransform__(key)]
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
+
+    def __keytransform__(self, key):
+        return key
+
+    def set_test_cookie(self):
+        pass
 
 class FastDispatchMixin(object):
 
@@ -43,7 +72,7 @@ class FastDispatchMixin(object):
         request.GET._mutable = False
         request.POST._mutable = False
 
-        request.session = dict()
+        request.session = FakeSession()
         request._messages = FallbackStorage(request)
 
         from django.conf import settings
