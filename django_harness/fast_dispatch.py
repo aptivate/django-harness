@@ -124,6 +124,7 @@ class FastDispatchMixin(object):
                 post_params, request_extras, file_params)
             self.last_request = view.request
             response = view(view.request, *resolved.args, **resolved.kwargs)
+            response.view = view
 
             # make sure that we render while language override is in effect!
             if language is not None and hasattr(response, 'render'):
