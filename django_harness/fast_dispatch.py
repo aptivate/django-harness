@@ -226,11 +226,12 @@ class FastDispatchMixin(object):
             msg_prefix + "Response redirected to '%s', expected '%s'" %
                 (actual_url, expected_url))
 
-    def assert_login_required(self, view, message=''):
-        response = self.fast_dispatch(view)
+    def assert_login_required(self, view_name, message='', *args, **kwargs):
+        response = self.fast_dispatch(view_name, *args, **kwargs)
 
         from django.core.urlresolvers import reverse
-        uri = reverse(view)
+        uri = reverse(view_name, args=kwargs.get('url_args', []),
+           kwargs=kwargs.get('url_kwargs', {}))
 
         from django.conf import settings
         login_url = settings.LOGIN_URL + "?next=" + uri
