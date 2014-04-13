@@ -227,6 +227,8 @@ class FastDispatchMixin(object):
                 (actual_url, expected_url))
 
     def assert_login_required(self, view_name, message='', *args, **kwargs):
+        kwargs.setdefault('request_extras', {})
+        kwargs['request_extras'].setdefault('user', None)
         response = self.fast_dispatch(view_name, *args, **kwargs)
 
         from django.core.urlresolvers import reverse
