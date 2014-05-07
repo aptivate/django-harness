@@ -328,8 +328,11 @@ class TranslationTestMixin(object):
             if field in trans_fields:
                 trans_values[field] = kwargs.pop(field)
 
-        from django_dynamic_fixture import N
-        instance = N(model, **kwargs)
+        from django_dynamic_fixture import G, N
+        if save:
+            instance = G(model, **kwargs)
+        else:
+            instance = N(model, **kwargs)
         instance.translate('en') # allows access to translated fields
 
         for field in trans_fields:
@@ -343,7 +346,7 @@ class TranslationTestMixin(object):
                 setattr(instance, field, "%s %d" % (field, self.counter))
 
         if save:
-            instance.save()
+            getattr(instance, instance._meta.translations_cache).save()
 
         return instance
 
