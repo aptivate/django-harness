@@ -64,7 +64,7 @@ class HtmlParsingMixin(object):
             #<!ENTITY rsaquo  "&#8250;">
             #<!ENTITY shy     "&#173;">
             #<!ENTITY uuml    "&#252;">
-            "]>") + re.sub(r"<!DOCTYPE html.*", "", content)
+            "]>") + re.sub(r"(?i)<!DOCTYPE html.*", "", content)
         parser = etree.XMLParser(remove_blank_text=True, resolve_entities=False)
 
         try:
