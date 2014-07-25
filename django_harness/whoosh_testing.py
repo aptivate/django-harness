@@ -30,7 +30,7 @@ class WhooshTestMixin(object):
 
         if isinstance(self.backend, WhooshSearchBackend):
             self.backend.path = '/dev/shm/whoosh'
-        else:
+        elif not self.backend.index_name.startswith("test_"):
             self.backend.index_name = "test_" + self.backend.index_name
 
         self.backend.silently_fail = False
