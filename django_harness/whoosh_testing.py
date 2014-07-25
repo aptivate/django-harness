@@ -24,31 +24,18 @@ class WhooshTestMixin(object):
 
         try:
             from haystack.backends.whoosh_backend import WhooshSearchBackend
-            if isinstance(self.backend, WhooshSearchBackend):
-                self.backend.path = '/dev/shm/whoosh'
-                self.backend.silently_fail = False
-                self.backend.setup()
-                self.backend.delete_index()
         except MissingDependency as e:
-            # not installed, so can't be in use
-            pass
+            class WhooshSearchBackend(object):
+                pass # create a fake one that will never match
 
-        try:
-            from haystack.backends.elasticsearch_backend import ElasticsearchSearchBackend
-            if isinstance(self.backend, ElasticsearchSearchBackend):
-                if not self.backend.index_name.startswith("test_"):
-                    self.backend.index_name = "test_" + self.backend.index_name
-                    from pyelasticsearch.exceptions import ElasticHttpNotFoundError
-                    try:
-                        self.backend.conn.delete_index(self.backend.index_name)
-                    except ElasticHttpNotFoundError as e:
-                        # ignore the error, we'll create it in a minute
-                        pass
-                    self.backend.conn.create_index(self.backend.index_name)
-                self.backend.clear()
-        except MissingDependency as e:
-            # not installed, so can't be in use
-            pass
+        if isinstance(self.backend, WhooshSearchBackend):
+            self.backend.path = '/dev/shm/whoosh'
+        else:
+            self.backend.index_name = "test_" + self.backend.index_name
+
+        self.backend.silently_fail = False
+        self.backend.clear()
+        self.backend.setup()
 
     def get_search_index(self, model_class):
         search_conn = connections[DEFAULT_ALIAS]
