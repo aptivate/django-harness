@@ -13,5 +13,6 @@ setup(
         "django >= 1.5",
         "lxml >= 3.2.4",
         "cssselect >= 0.9.1",
+        "python-dateutil >= 2.2",
     ],
 )
