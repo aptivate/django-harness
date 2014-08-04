@@ -8,6 +8,8 @@ import warnings
 from functools import wraps
 
 from django.conf import settings, UserSettingsHolder
+from django.core.urlresolvers import clear_url_caches
+from django.dispatch import receiver
 from django.test.signals import template_rendered, setting_changed
 
 class override_settings(object):
@@ -16,6 +18,8 @@ class override_settings(object):
     takes a function and returns a wrapped function. If it's a contextmanager
     it's used with the ``with`` statement. In either event entering/exiting
     are called before and after, respectively, the function/block is executed.
+
+    Fix nested override_settings(): backport fix for #20290 to Django 1.5.
     """
     def __init__(self, **kwargs):
         self.options = kwargs
@@ -70,3 +74,10 @@ class override_settings(object):
             new_value = getattr(settings, key, None)
             setting_changed.send(sender=settings._wrapped.__class__,
                                  setting=key, value=new_value)
+
+
+# Fix URL cache not cleared: backport fix for #21518 to Django 1.6
+@receiver(setting_changed)
+def root_urlconf_changed(**kwargs):
+    if kwargs['setting'] == 'ROOT_URLCONF':
+        clear_url_caches()
