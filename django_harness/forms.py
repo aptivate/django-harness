@@ -1,3 +1,19 @@
+from __future__ import absolute_import, unicode_literals
+
+import datetime
+
+from django.core.files.base import ContentFile
+from django.forms.widgets import HiddenInput
+from django.http.request import QueryDict
+import django.forms.widgets
+
+try:
+    from captcha.widgets import ReCaptcha
+except ImportError as e:
+    class ReCaptcha(object):
+        pass
+
+
 class FormUtilsMixin(object):
     def value_to_datadict(self, widget, name, value, strict=True):
         """
@@ -145,4 +161,113 @@ class FormUtilsMixin(object):
 
         return params
 
+    def generate_dummy_data(self, form, bound_field, param_name,
+            fields_to_delete):
 
+        widget = bound_field.field.widget
+
+        if isinstance(widget, HiddenInput):
+            # hidden fields are not modifiable, so we should give them
+            # their initial value
+
+            value = bound_field.value()
+            if getattr(widget, '_format_value', None):
+                value = widget._format_value(value)
+                if value is None:
+                    value = ''
+
+            return {param_name: str(value)}
+
+        if not bound_field.field.required:
+            return {}
+
+        if (hasattr(bound_field.field, 'choices') or
+                isinstance(widget, django.forms.widgets.Select)):
+
+            choices = (
+                getattr(bound_field.field, 'choices', None) or
+                list(widget.choices)
+            )
+
+            possible_values = []
+            for v, label in choices:
+                if isinstance(label, (tuple, list)):
+                    for v, _ in label:
+                        possible_values.append(v)
+                else:
+                    possible_values.append(v)
+
+            if possible_values[0] == '' and len(possible_values) >= 2:
+                chosen_value = possible_values[1]
+            else:
+                chosen_value = possible_values[0]
+
+            if isinstance(widget, django.forms.widgets.SelectMultiple):
+                value = [str(chosen_value)]
+            else:
+                value = str(chosen_value)
+
+        elif isinstance(bound_field.field, django.forms.fields.EmailField):
+            value = "whee@example.com"
+
+        elif isinstance(bound_field.field, django.forms.fields.DateField):
+            value = str(datetime.date.today())
+
+        elif isinstance(bound_field.field, django.forms.fields.FileField):
+            value = ContentFile("Whee")
+            value.name = "whee"
+
+        elif isinstance(widget, ReCaptcha):
+            fields_to_delete.append(bound_field.name)
+            return {}
+
+        else:
+            value = "Whee"
+
+        return {param_name: value}
+
+    def fill_form_with_dummy_data(self, form, post_data=None, create_new_form=True):
+        import django.forms.fields
+        import django.forms.widgets
+
+        if post_data is None:
+            post_data = {}
+        else:
+            post_data = dict(post_data)
+
+        fields_to_delete = []
+
+        for bound_field in form:
+            if form.prefix:
+                param_name = "%s-%s" % (form.prefix, bound_field.name)
+            else:
+                param_name = bound_field.name
+
+            post_data.update(self.generate_dummy_data(form, bound_field,
+                param_name, fields_to_delete))
+
+        query_dict = QueryDict('', mutable=True).copy()
+        for key, value in post_data.iteritems():
+            if hasattr(value, '__iter__'):
+                query_dict.setlist(key, value)
+            else:
+                query_dict.setlist(key, [value])
+        query_dict._mutable = False
+
+        if create_new_form:
+            new_form = form.__class__(query_dict)
+
+            for field_name in fields_to_delete:
+                del new_form.fields[field_name]
+
+            # post_data is not very useful if fields_to_delete is not empty,
+            # because any form constructed with it won't validate, but it is
+            # useful under some circumstances, so return it anyway.
+            """
+            if fields_to_delete:
+                post_data = None
+            """
+
+            return new_form, post_data
+        else:
+            return post_data
