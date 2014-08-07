@@ -6,7 +6,7 @@ class DateUtilsMixin(object):
     def from_today(self, **kwargs):
         return date.today() + timedelta(**kwargs)
 
-    def format_date(self, date):
+    def format_date(self, date, date_format=None):
         from django.template.defaultfilters import date as format_date
-        return format_date(date)
+        return format_date(date, date_format)
 
