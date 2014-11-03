@@ -151,7 +151,12 @@ class FormUtilsMixin(object):
 
             # be strict with values passed by tests to this function,
             # and lax with values that were already in the record/form
-            new_params = self.value_to_datadict(widget, bound_field.name, value,
+            if form.prefix:
+                param_name = "%s-%s" % (form.prefix, bound_field.name)
+            else:
+                param_name = bound_field.name
+
+            new_params = self.value_to_datadict(widget, param_name, value,
                 strict=(bound_field.name in new_values))
 
             params.update(new_params)
