@@ -110,9 +110,6 @@ class FormUtilsMixin(object):
             subwidget.choices = list(widget.choices)
             return self.value_to_datadict(subwidget, name, value, strict)
 
-        elif isinstance(widget, django.forms.widgets.Textarea):
-            return {name: force_unicode(value)}
-
         elif isinstance(widget, django.contrib.auth.forms.ReadOnlyPasswordHashWidget):
             return {}
 
@@ -120,7 +117,7 @@ class FormUtilsMixin(object):
             value = widget._format_value(value)
             if value is None:
                 value = ''
-            return {name: value}
+            return {name: force_unicode(value)}
 
         else:
             raise Exception("Don't know how to convert data to form values " +
