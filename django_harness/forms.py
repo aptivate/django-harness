@@ -248,8 +248,9 @@ class FormUtilsMixin(object):
             else:
                 param_name = bound_field.name
 
-            post_data.update(self.generate_dummy_data(form, bound_field,
-                param_name, fields_to_delete))
+            if param_name not in post_data:
+                post_data.update(self.generate_dummy_data(form, bound_field,
+                    param_name, fields_to_delete))
 
         query_dict = QueryDict('', mutable=True).copy()
         for key, value in post_data.iteritems():
