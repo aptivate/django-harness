@@ -223,6 +223,9 @@ class FormUtilsMixin(object):
             fields_to_delete.append(bound_field.name)
             return {}
 
+        elif isinstance(bound_field.field, django.forms.fields.IntegerField):
+            value = "123"
+
         else:
             value = "Whee"
 
