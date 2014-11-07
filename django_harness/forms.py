@@ -63,7 +63,15 @@ class FormUtilsMixin(object):
                 values = [value]
 
             choices = list(widget.choices)
-            possible_values = [v for v, label in choices]
+            possible_values = []
+            for choice_value, choice_label in choices:
+                if isinstance(choice_label, list) or isinstance(choice_label, tuple):
+                    # This is actually a group of options, and therefore not
+                    # selectable, but it contains entries which are.
+                    possible_values.extend([v for v, label in choice_label])
+                else:
+                    possible_values.append(choice_value)
+
             found_values = []
 
             for v in values:
@@ -97,13 +105,13 @@ class FormUtilsMixin(object):
                 # RadioSelect widget. In that case, we don't add anything
                 # to the POST data.
                 return {}
-            elif len(choices) == 0:
+            elif len(possible_values) == 0:
                 # it's possible to select no option in a drop-down list with
                 # no options!
                 return {}
             else:
                 # most browsers pre-select the first value
-                return {name: str(choices[0][0])}
+                return {name: str(possible_values[0])}
 
         elif isinstance(widget, django.contrib.admin.widgets.RelatedFieldWidgetWrapper):
             subwidget = widget.widget
