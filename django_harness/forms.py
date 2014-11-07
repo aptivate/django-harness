@@ -127,9 +127,10 @@ class FormUtilsMixin(object):
             return {name: force_unicode(value)}
 
         elif getattr(widget, '_format_value', None):
-            value = widget._format_value(value)
             if value is None:
                 value = ''
+            else:
+                value = widget._format_value(value)
             return {name: force_unicode(value)}
 
         else:
