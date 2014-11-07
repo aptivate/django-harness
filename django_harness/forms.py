@@ -113,6 +113,11 @@ class FormUtilsMixin(object):
         elif isinstance(widget, django.contrib.auth.forms.ReadOnlyPasswordHashWidget):
             return {}
 
+        elif isinstance(widget, django.forms.widgets.Textarea):
+            if value is None:
+                value = ''
+            return {name: force_unicode(value)}
+
         elif getattr(widget, '_format_value', None):
             value = widget._format_value(value)
             if value is None:
