@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 import datetime
 
 from django.core.files.base import ContentFile
+from django.db.models import Model
 from django.forms.widgets import HiddenInput
 from django.http.request import QueryDict
 import django.forms.widgets
@@ -15,6 +16,24 @@ except ImportError as e:
 
 
 class FormUtilsMixin(object):
+    def get_possible_values(self, choices):
+        possible_values = []
+        for choice_value, choice_label in choices:
+            # Handle the special case where the value is actually a Model.
+            # This is used by SubThemeWidget on RUForum for example, to
+            # add extra attributes to the HTML rendered by the widget.
+            # In this case, we guess that the PK is the value that's needed.
+            if isinstance(choice_value, Model):
+                choice_value = choice_value.pk
+
+            if isinstance(choice_label, list) or isinstance(choice_label, tuple):
+                # This is actually a group of options, and therefore not
+                # selectable, but it contains entries which are.
+                possible_values.extend([v for v, label in choice_label])
+            else:
+                possible_values.append(choice_value)
+        return possible_values
+
     def value_to_datadict(self, widget, name, value, strict=True):
         """
         There's a value_from_datadict method in each django.forms.widgets widget,
@@ -63,15 +82,7 @@ class FormUtilsMixin(object):
                 values = [value]
 
             choices = list(widget.choices)
-            possible_values = []
-            for choice_value, choice_label in choices:
-                if isinstance(choice_label, list) or isinstance(choice_label, tuple):
-                    # This is actually a group of options, and therefore not
-                    # selectable, but it contains entries which are.
-                    possible_values.extend([v for v, label in choice_label])
-                else:
-                    possible_values.append(choice_value)
-
+            possible_values = self.get_possible_values(choices)
             found_values = []
 
             for v in values:
@@ -205,14 +216,9 @@ class FormUtilsMixin(object):
                 list(widget.choices)
             )
 
-            possible_values = []
-            for v, label in choices:
-                if isinstance(label, (tuple, list)):
-                    for v, _ in label:
-                        possible_values.append(v)
-                else:
-                    possible_values.append(v)
+            possible_values = self.get_possible_values(choices)
 
+            # Skip any blank first item, as it's usually not a valid choice.
             if possible_values[0] == '' and len(possible_values) >= 2:
                 chosen_value = possible_values[1]
             else:
