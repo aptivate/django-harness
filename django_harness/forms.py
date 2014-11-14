@@ -110,7 +110,12 @@ class FormUtilsMixin(object):
                     pass
 
             if found_values:
-                return {name: found_values}
+                if len(found_values) == 1:
+                    # If there's just a single value, return the plain value
+                    return {name: found_values[0]}
+                else:
+                    # Otherwise we have no choice but to return an array
+                    return {name: found_values}
             elif isinstance(widget, django.forms.widgets.RadioSelect):
                 # As above, it's possible not to select any option in a
                 # RadioSelect widget. In that case, we don't add anything
