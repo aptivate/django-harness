@@ -170,8 +170,8 @@ class HtmlParsingMixin(object):
             return self.find_within(ancestor,
                 self.translator.css_to_xpath(selector), required, list)
         except self.failureException as e:
-            raise self.failureException("Failed to find <%s> in section:\n%s\n\n%s" %
-                (selector, e, self.tostring(ancestor)))
+            raise self.failureException("Failed to find <%s> in section:\n%s" %
+                (selector, e))
 
     def first_child(self, element, message=''):
         if message:
