@@ -34,7 +34,7 @@ class TranslationTestMixin(object):
         instance.translate('en') # allows access to translated fields
 
         for field in trans_fields:
-            if field in ('id', 'language_code'):
+            if field in ('id', 'language_code', 'master', 'master_id'):
                 # leave well alone
                 pass
             elif field in trans_values:
@@ -44,18 +44,6 @@ class TranslationTestMixin(object):
                 setattr(instance, field, "%s %d" % (field, self.counter))
 
         if save:
-            getattr(instance, instance._meta.translations_cache).save()
+            model.save_translations(instance)
 
         return instance
-
-
-# Work around a bug in creating new TranslatableModel instances on classes
-# with Haystack search indexes, because the post_save signal is sent too
-# early, before the translation objects are saved, and Haystack can't access
-# the translated model attributes and dies painfully.
-# https://github.com/KristianOellegaard/django-hvad/issues/139
-
-# We can't just work around this in ModelForm, because it still leaves manual
-# creation of TranslatableModel objects as a trap for the unwary developers.
-
-
