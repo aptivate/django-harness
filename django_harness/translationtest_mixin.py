@@ -1,3 +1,5 @@
+from django.utils import translation
+
 class TranslationTestMixin(object):
     def translate_and_save(self, model, **kwargs):
         model.translate('es')
@@ -31,7 +33,15 @@ class TranslationTestMixin(object):
             instance = G(model, **kwargs)
         else:
             instance = N(model, **kwargs)
-        instance.translate('en') # allows access to translated fields
+
+        # access to translated fields in current locale
+        # or attempt to fall back to defaults
+        language_code = translation.get_language()
+        if language_code is None:
+            language_code = settings.LANGUAGE_CODE
+        if language_code is None:
+            language_code = 'en'
+        instance.translate(language_code)
 
         for field in trans_fields:
             if field in ('id', 'language_code', 'master', 'master_id'):
