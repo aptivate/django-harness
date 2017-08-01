@@ -239,7 +239,7 @@ class SmartFallbackManager(TranslationManager):
         setattr(found, found._meta.translations_cache, translation)
         return found
 
-    def get_all_ordered_by_unicode(self):
+    def get_all_ordered_by_unicode(self, queryset=None):
         """
         Don't sort by name using the database! It results in a join
         to the translation table, and duplicate results, and it's
@@ -251,7 +251,10 @@ class SmartFallbackManager(TranslationManager):
 
         Note: returns a list, not a queryset
         """
-        return sorted(self.model.objects.all(), key=self.model.__unicode__)
+        if queryset is None:
+            queryset = self.model.objects.all()
+
+        return sorted(queryset, key=self.model.__unicode__)
 
 from hvad.models import TranslatableModel
 
