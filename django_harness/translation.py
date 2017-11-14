@@ -349,7 +349,9 @@ class TranslationTestMixin(object):
                 setattr(instance, field, "%s %d" % (field, self.counter))
 
         if save:
-            getattr(instance, instance._meta.translations_cache).save()
+            translations = getattr(instance, instance._meta.translations_cache)
+            translations.master = instance
+            translations.save()
 
         return instance
 
